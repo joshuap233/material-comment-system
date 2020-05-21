@@ -53,13 +53,14 @@ const Editor = React.memo(function Editor(props) {
     //TODO: http post
     data.time = formatTime;
     if (replayId === null) {
+
       setDictTree(dictTree => [
         ...dictTree,
         data
       ]);
     } else {
       setDictTree(dictTree => {
-        const tempDictTree = [...dictTree];
+        const tempDictTree = JSON.parse(JSON.stringify(dictTree));
         updateDictTreeNode(tempDictTree, replayId, data);
         return tempDictTree;
       });

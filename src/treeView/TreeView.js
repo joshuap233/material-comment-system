@@ -1,11 +1,10 @@
 import React, {useMemo, useState} from "react";
-import {Content, ParentContent, ReplayButton} from './TreeViewItem';
+import {Content, ParentContent, ReplayButton, Nickname} from './TreeViewItem';
 import useStyles from './treeView.style';
 import Divider from '@material-ui/core/Divider';
 import Avatar from '@material-ui/core/Avatar';
 
-
-export default function TreeView({dictTree, handleOpenModal}) {
+function TreeView({dictTree, handleOpenModal}) {
   const [clickId, setClickId] = useState(null);
   const level = 0;
   const classes = useStyles({level});
@@ -17,7 +16,7 @@ export default function TreeView({dictTree, handleOpenModal}) {
       marginLeft: level <= 3 ? level * 20 : 0
     }), [level]);
 
-    if (nodes.length !== 0) {
+    if (nodes.size !== 0) {
       return (
         <>
           {
@@ -32,23 +31,7 @@ export default function TreeView({dictTree, handleOpenModal}) {
                       <Avatar src={node.avatar ? `https://www.gravatar.com/avatar/${node.avatar}` : ''}/>
                     </div>
                     <div className={classes.userInfo}>
-                      <a
-                        href={node.website}
-                        target={'_blank'}
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                          if (!node.website) {
-                            e.preventDefault();
-                          }
-                        }}
-                        style={node.website ? {
-                          color: '#7986cb'
-                        } : {
-                          color: '#000'
-                        }}
-                        className={clickId === node.id ? classes.shake : null}>
-                        {node.nickname}
-                      </a>
+                      <Nickname website={node.website} nickname={node.nickname} clickId={clickId} id={node.id}/>
                       <p>
                         <span>
                           {node.browser}
@@ -69,7 +52,7 @@ export default function TreeView({dictTree, handleOpenModal}) {
                 </div>
                 <Divider variant={'middle'}/>
                 {
-                  node.child.length !== 0 && (
+                  node.child.size !== 0 && (
                     <TreeNode
                       nodes={node.child}
                       parent={{
@@ -99,3 +82,5 @@ export default function TreeView({dictTree, handleOpenModal}) {
     </div>
   );
 }
+
+export default React.memo(TreeView);

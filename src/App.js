@@ -3,6 +3,7 @@ import TreeView from "./treeView/TreeView";
 import './global.css';
 import Editor, {PortalEditor} from "./editor/Editor";
 import {hot} from 'react-hot-loader';
+import {fromJS} from "immutable";
 
 // time,avatar
 const DICTTREE = [
@@ -93,9 +94,10 @@ function App() {
   const [dictTree, setDictTree] = useState([]);
   const [replayId, setReplayId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+
   useEffect(() => {
     //TODO:fetch dictTree
-    setDictTree(DICTTREE);
+    setDictTree(fromJS(DICTTREE));
   }, []);
 
   const handleCloseModal = useCallback(() => {

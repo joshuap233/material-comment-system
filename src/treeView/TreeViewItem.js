@@ -29,38 +29,31 @@ export function ParentContent({parent, setClickId}) {
 export function Content({content}) {
   const classes = useStyles();
   const contentRef = useRef();
-  const [overflow, setOverflow] = useState({
-    hidden: true,
-    overflow: false
-  });
+  const [overflow, setOverflow] = useState(false);
+  const [hidden, setHidden] = useState(true);
   const handleOnClick = useCallback(() => {
-    setOverflow(overflow => ({
-      ...overflow,
-      hidden: false
-    }));
+    setHidden(false);
+    setOverflow(false);
   }, []);
 
   useEffect(() => {
-    // const current = contentRef.current;
-    // if (current && overflow.hidden) {
-    //   const isOverFlow = current.offsetHeight < current.scrollHeight;
-    //   setOverflow(overflow => ({
-    //     ...overflow,
-    //     overflow: isOverFlow
-    //   }));
-    // }
-  }, [overflow.hidden]);
+    const current = contentRef.current;
+    if (current && hidden) {
+      const isOverFlow = current.offsetHeight < current.scrollHeight;
+      setOverflow(isOverFlow);
+    }
+  }, [hidden]);
 
   return (
     <>
       <div
         ref={contentRef}
-        className={overflow.hidden ? classes.overflow : null}
+        className={hidden ? classes.overflow : null}
       >
         <ReactMarkdown source={content}/>
       </div>
       {
-        overflow.overflow && overflow.hidden && (
+        overflow && hidden && (
           <div className={classes.loadMore}>
             <Button
               onClick={handleOnClick}
@@ -71,6 +64,29 @@ export function Content({content}) {
         )
       }
     </>
+  );
+}
+
+
+export function Nickname({website, id, clickId, nickname}) {
+  const classes = useStyles();
+  const handleOnClick = (e) => {
+    if (!website) {
+      e.preventDefault();
+    }
+  };
+  const style = website ? {color: '#7986cb'} : {color: '#000'};
+
+  return (
+    <a
+      href={website}
+      target={'_blank'}
+      rel="noopener noreferrer"
+      onClick={handleOnClick}
+      style={style}
+      className={clickId === id ? classes.shake : null}>
+      {nickname}
+    </a>
   );
 }
 

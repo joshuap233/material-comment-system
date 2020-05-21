@@ -6,7 +6,6 @@ export default makeStyles((theme) => ({
     display: "flex",
     alignItems: 'center'
   },
-  nickname: {},
   userInfo: {
     marginLeft: 20,
     display: 'flex',
@@ -33,7 +32,4 @@ export default makeStyles((theme) => ({
   replayIcon: {
     color: theme.palette.primary.light
   },
-  shake: {
-    animation: 'shake 1.0s 2',
-  }
 }));

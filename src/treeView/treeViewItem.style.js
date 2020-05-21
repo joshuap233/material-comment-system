@@ -21,5 +21,8 @@ export default makeStyles({
     marginTop: -10,
     display: "flex",
     justifyContent: "center"
+  },
+  shake: {
+    animation: 'shake 1.0s 2',
   }
 });
