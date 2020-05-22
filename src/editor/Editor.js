@@ -14,6 +14,7 @@ import {Context} from "./index";
 import {Field} from "./EditorField";
 import md5 from 'crypto-js/md5';
 import useStyles from './editor.style';
+import {fromJS} from "immutable";
 
 
 const Editor = React.memo(function Editor(props) {
@@ -36,7 +37,12 @@ const Editor = React.memo(function Editor(props) {
   const parseData = useCallback(() => {
     const browser = getBrowserVersion();
     const {formatTime, timestamp} = getCurrentTime();
-    const website = editorState.website.match('https?://') ? editorState.website : 'http://' + editorState.website;
+    let website = editorState.website;
+
+    if (website && !website.match('https?://')) {
+      website = 'http://' + editorState.website;
+    }
+
     return [{
       ...editorState,
       website,
@@ -49,20 +55,17 @@ const Editor = React.memo(function Editor(props) {
   }, [editorState]);
 
   const handleOnSubmit = useCallback(() => {
-    const [data, formatTime] = parseData();
+    let [data, formatTime] = parseData();
     //TODO: http post
     data.time = formatTime;
+    data = fromJS(data);
     if (replayId === null) {
-
-      setDictTree(dictTree => [
-        ...dictTree,
-        data
-      ]);
+      setDictTree(dictTree => {
+        return dictTree.push(data);
+      });
     } else {
       setDictTree(dictTree => {
-        const tempDictTree = JSON.parse(JSON.stringify(dictTree));
-        updateDictTreeNode(tempDictTree, replayId, data);
-        return tempDictTree;
+        return updateDictTreeNode(dictTree, replayId, data);
       });
     }
     setModalOpen(false);
@@ -149,8 +152,6 @@ const Editor = React.memo(function Editor(props) {
       </Box>
     </Context.Provider>
   );
-}, (prevProps, nextProps) => {
-  return prevProps.replayId === nextProps.replayId;
 });
 
 const modalRoot = document.getElementById('modal-root');

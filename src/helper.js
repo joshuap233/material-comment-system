@@ -26,14 +26,20 @@ const getCurrentTime = () => {
 };
 
 const updateDictTreeNode = (nodes, id, data) => {
-  for (let node of nodes) {
-    if (node.id === id) {
-      node.child.push(data);
-      break;
-    } else {
-      updateDictTreeNode(node.child, id, data);
-    }
-  }
+  const _updateDictTreeNode = (nodes) => {
+    return nodes.map(node => {
+      if (node.get('id') === id) {
+        return node.update('child', value => value.push(data));
+      } else {
+        const res = _updateDictTreeNode(node.get('child'));
+        if (res !== node.get('child')) {
+          return node.update('child', () => res);
+        }
+        return node;
+      }
+    });
+  };
+  return _updateDictTreeNode(nodes);
 };
 
 export {getCurrentTime, getBrowserVersion, updateDictTreeNode};

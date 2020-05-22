@@ -1,9 +1,10 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useReducer} from 'react';
 import TreeView from "./treeView/TreeView";
 import './global.css';
 import Editor, {PortalEditor} from "./editor/Editor";
 import {hot} from 'react-hot-loader';
 import {fromJS} from "immutable";
+import CommentContext, {action, reducer, defaultValue} from './CommentContext.js';
 
 // time,avatar
 const DICTTREE = [
@@ -88,48 +89,35 @@ const DICTTREE = [
   },
 ];
 
-
 function App() {
-  // 记录id与child,方便插入节点
-  const [dictTree, setDictTree] = useState([]);
-  const [replayId, setReplayId] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [state, dispatch] = useReducer(reducer, defaultValue);
+  return (
+    <CommentContext.Provider value={{state, dispatch, action}}>
+      <ContextApp/>
+    </CommentContext.Provider>
+  );
+}
 
+function ContextApp() {
+  // 记录id与child,方便插入节点
+  const {state, dispatch, action} = useContext(CommentContext);
   useEffect(() => {
     //TODO:fetch dictTree
+    dis
     setDictTree(fromJS(DICTTREE));
   }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setModalOpen(false);
-    setReplayId(null);
-  }, []);
-
-  const handleOpenModal = useCallback((nodeId) => {
-    setModalOpen(true);
-    setReplayId(nodeId);
-  }, []);
 
   return (
     <div>
       <Editor
-        setModalOpen={setModalOpen}
-        replayId={replayId}
-        setDictTree={setDictTree}
       />
       {
-        modalOpen && (
-          <PortalEditor
-            setModalOpen={setModalOpen}
-            replayId={replayId}
-            handleCloseModal={handleCloseModal}
-            setDictTree={setDictTree}
-          />
+        state.get('modalOpen') && (
+          <PortalEditor/>
         )
       }
       <TreeView
-        dictTree={dictTree}
-        handleOpenModal={handleOpenModal}
       />
     </div>
   );
