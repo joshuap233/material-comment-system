@@ -3,7 +3,6 @@ import TreeView from "./treeView/TreeView";
 import './global.css';
 import Editor, {PortalEditor} from "./editor/Editor";
 import {hot} from 'react-hot-loader';
-import {fromJS} from "immutable";
 import CommentContext, {action, reducer, defaultValue} from './CommentContext.js';
 
 // time,avatar
@@ -98,29 +97,25 @@ function App() {
   );
 }
 
-function ContextApp() {
+const ContextApp = React.memo(function ContextApp() {
   // 记录id与child,方便插入节点
   const {state, dispatch, action} = useContext(CommentContext);
   useEffect(() => {
     //TODO:fetch dictTree
-    dis
-    setDictTree(fromJS(DICTTREE));
-  }, []);
-
+    dispatch(action.initDictTree(DICTTREE));
+  }, [action, dispatch]);
 
   return (
     <div>
-      <Editor
-      />
+      <Editor/>
       {
         state.get('modalOpen') && (
           <PortalEditor/>
         )
       }
-      <TreeView
-      />
+      <TreeView/>
     </div>
   );
-}
+});
 
 export default hot(module)(App);

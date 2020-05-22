@@ -1,10 +1,13 @@
-import React, {useState} from "react";
+import React, {useContext} from "react";
 import Divider from '@material-ui/core/Divider';
 import Content from './TreeViewItem';
+import CommentContext from "../CommentContext";
+import {areEqual} from "../helper";
+import {Button} from '@material-ui/core';
+
 
 const TreeNode = React.memo(function Node(props) {
-  const {nodes, parent, level, clickId, setClickId, handleOpenModal} = props;
-
+  const {nodes, parent, level} = props;
   if (nodes.size !== 0) {
     return (
       <>
@@ -14,10 +17,7 @@ const TreeNode = React.memo(function Node(props) {
               <Content
                 level={level}
                 node={node}
-                clickId={clickId}
-                handleOpenModal={handleOpenModal}
                 parent={parent}
-                setClickId={setClickId}
               />
               <Divider variant={'middle'}/>
               {
@@ -30,9 +30,6 @@ const TreeNode = React.memo(function Node(props) {
                       nickname: node.get('nickname')
                     }}
                     level={level + 1}
-                    clickId={clickId}
-                    setClickId={setClickId}
-                    handleOpenModal={handleOpenModal}
                   />
                 )
               }
@@ -43,29 +40,30 @@ const TreeNode = React.memo(function Node(props) {
     );
   }
   return <></>;
-}, (pre, next) => {
-  return pre.nodes === next.nodes &&
-    pre.parent.id === next.parent.id &&
-    pre.level === next.level;
-});
+}, areEqual);
 
-function TreeView({dictTree, handleOpenModal}) {
-  const [clickId, setClickId] = useState(null);
+function TreeView() {
+  const {state} = useContext(CommentContext);
+  return (
+    <ContextTreeView dictTree={state.get('dictTree')}/>
+  );
+}
+
+const ContextTreeView = React.memo(function ContextTreeView({dictTree}) {
   const level = 0;
   return (
     <div>
       <TreeNode
         level={level}
         nodes={dictTree}
-        clickId={clickId}
-        setClickId={setClickId}
-        handleOpenModal={handleOpenModal}
       />
+      <div>
+        <Button variant="contained" color="primary">
+          加载更多...
+        </Button>
+      </div>
     </div>
   );
-}
-
-export default React.memo(TreeView, (prevProps, nextProps) => {
-  return prevProps.dictTree === nextProps.dictTree &&
-    prevProps.handleOpenModal === nextProps.handleOpenModal;
 });
+
+export default React.memo(TreeView);

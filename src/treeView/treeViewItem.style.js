@@ -1,7 +1,7 @@
 import {makeStyles} from "@material-ui/core/styles";
 
 export default makeStyles((theme) => ({
-    userInfoWrapper: {
+  userInfoWrapper: {
     marginTop: 10,
     display: "flex",
     alignItems: 'center'
@@ -34,16 +34,19 @@ export default makeStyles((theme) => ({
   },
   blockquote: {
     borderLeft: '6px solid #DDDDDD',
-    maxHeight: 200,
+    maxHeight: 150,
     overflow: "hidden"
   },
   link: {
     textDecoration: 'none',
-    color: '#757575'
+    color: '#757575',
+    '& > :nth-child(1)': {
+      // color: theme.palette.secondary.light
+    }
   },
   overflow: {
     maxHeight: 100,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   loadMore: {
     height: 30,

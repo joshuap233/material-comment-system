@@ -1,48 +1,31 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useContext} from 'react';
 import ReactMarkdown from "react-markdown";
-import {Box} from '@material-ui/core';
+import {Box, TextField} from '@material-ui/core';
 import PageviewIcon from '@material-ui/icons/Pageview';
 import BackupIcon from '@material-ui/icons/Backup';
 import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon';
 import InfoIcon from '@material-ui/icons/Info';
-import Emoji from "./Emoji";
-import {getBrowserVersion, getCurrentTime, updateDictTreeNode} from "../helper";
+import {getBrowserVersion, getCurrentTime} from "../helper";
 import {v4 as uuidV4} from 'uuid';
 import ReactDOM from 'react-dom';
 import CloseIcon from '@material-ui/icons/Close';
-import {Context} from "./index";
-import {Field} from "./EditorField";
+import {Field, Emoji} from "./EditorItem";
 import md5 from 'crypto-js/md5';
 import useStyles from './editor.style';
-import {fromJS} from "immutable";
+import CommentContext from "../CommentContext";
 
-
-const Editor = React.memo(function Editor(props) {
-  const classes = useStyles();
-  const {setModalOpen, setDictTree, replayId, handleCloseModal} = props;
-
-  const [state, setState] = useState({
-    preview: false,
-    emoji: false
-  });
-
-  const [editorState, setEditorState] = useState({
-    content: '(つ´ω`)つ',
-    nickname: 'Anonymous',
-    email: '',
-    website: '',
-    avatar: ''
-  });
+function SubmitButton({cacheContent}) {
+  const {state: contextState, dispatch, action} = useContext(CommentContext);
 
   const parseData = useCallback(() => {
     const browser = getBrowserVersion();
     const {formatTime, timestamp} = getCurrentTime();
+    const editorState = contextState.get('editorState').toJS();
+    editorState.content = cacheContent;
     let website = editorState.website;
-
     if (website && !website.match('https?://')) {
-      website = 'http://' + editorState.website;
+      website = 'http://' + website;
     }
-
     return [{
       ...editorState,
       website,
@@ -52,24 +35,49 @@ const Editor = React.memo(function Editor(props) {
       child: [],
       avatar: editorState.email ? md5(editorState.email).toString() : ''
     }, formatTime];
-  }, [editorState]);
+  }, [cacheContent, contextState]);
 
   const handleOnSubmit = useCallback(() => {
     let [data, formatTime] = parseData();
     //TODO: http post
     data.time = formatTime;
-    data = fromJS(data);
-    if (replayId === null) {
-      setDictTree(dictTree => {
-        return dictTree.push(data);
-      });
+    if (contextState.get('reply') === null) {
+      dispatch(action.updateDictTree(data));
     } else {
-      setDictTree(dictTree => {
-        return updateDictTreeNode(dictTree, replayId, data);
-      });
+      dispatch(action.recursiveUpdateDictTree(data));
     }
-    setModalOpen(false);
-  }, [parseData, replayId, setDictTree, setModalOpen]);
+    dispatch(action.closeModal());
+  }, [action, contextState, dispatch, parseData]);
+
+  return (
+    <div title={'提交'} onClick={handleOnSubmit}>
+      <BackupIcon/>
+    </div>
+  );
+};
+
+function Preview({cacheContent}) {
+  const classes = useStyles();
+  return (
+    <div className={classes.preview}>
+      <ReactMarkdown source={cacheContent}/>
+    </div>
+  );
+}
+
+const Editor = React.memo(function Editor({isModal}) {
+  const classes = useStyles();
+  const {dispatch, action} = useContext(CommentContext);
+  const [cacheContent, setCacheContent] = useState('(つ´ω`)つ');
+  const [state, setState] = useState({
+    preview: false,
+    emoji: false
+  });
+
+  const handleContentChange = useCallback((e) => {
+    const {value} = e.target;
+    setCacheContent(value);
+  }, []);
 
   const handleEmojiClick = useCallback(() => {
     setState(state => ({
@@ -85,89 +93,89 @@ const Editor = React.memo(function Editor(props) {
     }));
   }, []);
 
+  const handleCloseModal = useCallback(() => {
+    dispatch(action.closeModal());
+  }, [action, dispatch]);
+
   return (
-    <Context.Provider value={{editorState, setEditorState}}>
-      <Box
-        boxShadow={3}
-        className={classes.root}
-      >
-        <div className={classes.editorWrapper}>
-          {
-            handleCloseModal && (
-              <div className={classes.closeIcon}>
-                <CloseIcon onClick={handleCloseModal}/>
-              </div>
-            )
-          }
-          <div className={classes.editor}>
-            <div>
-              <div
-                title={state.preview ? '关闭预览' : '预览'}
-                onClick={handlePreviewClick}>
-                <PageviewIcon/>
-              </div>
-              <div title={'提交'} onClick={handleOnSubmit}>
-                <BackupIcon/>
-              </div>
-              <div title={'表情'} onClick={handleEmojiClick}>
-                <InsertEmoticonIcon/>
-              </div>
-              <div title={'markdown 语法'}>
-                <a
-                  target={'_blank'}
-                  rel="noopener noreferrer"
-                  href="https://guides.github.com/features/mastering-markdown/">
-                  <InfoIcon/>
-                </a>
-              </div>
+    <Box
+      boxShadow={3}
+      className={classes.root}
+    >
+      <div className={classes.editorWrapper}>
+        {
+          isModal && (
+            <div className={classes.closeIcon}>
+              <CloseIcon onClick={handleCloseModal}/>
             </div>
-          </div>
-          <div className={classes.fieldWrapper}>
-            <div>
-              <Field label="昵称" name={'nickname'}/>
-              <Field label="邮箱" name={'email'}/>
-              <Field label="网站" name={'website'}/>
+          )
+        }
+        <div className={classes.editor}>
+          <div>
+            <div
+              title={state.preview ? '关闭预览' : '预览'}
+              onClick={handlePreviewClick}>
+              <PageviewIcon/>
             </div>
-            <Field
-              className={classes.multiLineTextField}
-              multiline
-              rows={12}
-              variant="outlined"
-              name={'content'}
-            />
+            <SubmitButton cacheContent={cacheContent}/>
+            <div title={'表情'} onClick={handleEmojiClick}>
+              <InsertEmoticonIcon/>
+            </div>
+            <div title={'markdown 语法'}>
+              <a
+                target={'_blank'}
+                rel="noopener noreferrer"
+                href="https://guides.github.com/features/mastering-markdown/">
+                <InfoIcon/>
+              </a>
+            </div>
           </div>
         </div>
-        {
-          state.preview && (
-            <div style={classes.preview}>
-              <ReactMarkdown source={editorState.content}/>
-            </div>
-          )
-        }
-        {
-          state.emoji && (
-            <Emoji setEditorState={setEditorState}/>
-          )
-        }
-      </Box>
-    </Context.Provider>
+        <div className={classes.fieldWrapper}>
+          <div>
+            <Field label="昵称" name={'nickname'}/>
+            <Field label="邮箱" name={'email'}/>
+            <Field label="网站" name={'website'}/>
+          </div>
+          <TextField
+            className={classes.multiLineTextField}
+            multiline
+            rows={12}
+            variant="outlined"
+            name={'content'}
+            value={cacheContent}
+            onChange={handleContentChange}
+          />
+        </div>
+      </div>
+      {
+        state.preview && (
+          <Preview cacheContent={cacheContent}/>
+        )
+      }
+      {
+        state.emoji && (
+          <Emoji setCacheContent={setCacheContent}/>
+        )
+      }
+    </Box>
   );
 });
 
 const modalRoot = document.getElementById('modal-root');
 
-export function PortalEditor(props) {
+export const PortalEditor = React.memo(function PortalEditor() {
   const classes = useStyles();
   return (
     ReactDOM.createPortal((
         <div className={classes.portal}>
-          <Editor {...props}/>
+          <Editor isModal={true}/>
         </div>
       ),
       modalRoot
     )
   );
-}
+});
 
 export default Editor;
 

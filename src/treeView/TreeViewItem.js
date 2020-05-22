@@ -1,14 +1,36 @@
 import ReactMarkdown from "react-markdown";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from "react";
 import Button from "@material-ui/core/Button";
 import ReplyIcon from "@material-ui/icons/Reply";
 import useStyles from './treeViewItem.style';
 import Avatar from "@material-ui/core/Avatar";
+import CommentContext from "../CommentContext";
+import {areEqual} from "../helper";
 
+const Content = React.memo(function Content({level, node, parent}) {
+  const {state, dispatch, action} = useContext(CommentContext);
+  const handleOpenModal = useCallback((reply) => {
+    dispatch(action.openModal(reply));
+  }, [action, dispatch]);
 
-export default function Content(props) {
-  const {level, node, clickId, handleOpenModal, parent, setClickId} = props;
+  const setClickId = useCallback((clickId) => {
+    dispatch(action.setClickId(clickId));
+  }, [action, dispatch]);
 
+  return (
+    <ContextContent
+      setClickId={setClickId}
+      handleOpenModal={handleOpenModal}
+      clickId={state.get('clickId')}
+      level={level}
+      node={node}
+      parent={parent}
+    />
+  );
+}, areEqual);
+
+const ContextContent = React.memo(function ContextContent(props) {
+  const {level, node, parent, setClickId, handleOpenModal, clickId} = props;
   const contentWrapper = useMemo(() => ({
     marginLeft: level <= 2 ? level * 20 : 3 * 20
   }), [level]);
@@ -22,13 +44,16 @@ export default function Content(props) {
     >
       <div className={classes.userInfoWrapper}>
         <div>
-          <Avatar src={node.get('avatar') ? `https://www.gravatar.com/avatar/${node.get('avatar')}` : ''}/>
+          <Avatar
+            src={`https://www.gravatar.com/avatar/${node.get('avatar')}`}
+          />
         </div>
         <div className={classes.userInfo}>
           <Nickname
             website={node.get('website')}
-            nickname={node.get('nickname')} clickId={clickId}
-            id={node.get('id')}/>
+            nickname={node.get('nickname')}
+            clickId={clickId}
+            currentId={node.get('id')}/>
           <p>
             <span>
               {node.get('browser')}
@@ -37,7 +62,7 @@ export default function Content(props) {
               {node.get('time')}
             </span>
             <span className={classes.replayIcon}>
-              <ReplayButton id={node.get('id')} handleOpenModal={handleOpenModal}/>
+              <ReplayButton reply={node.get('id')} handleOpenModal={handleOpenModal}/>
             </span>
           </p>
         </div>
@@ -48,10 +73,10 @@ export default function Content(props) {
       <CommentContent content={node.get("content")}/>
     </div>
   );
-}
+}, areEqual);
 
 
-export function ParentCommentContent({parent, setClickId}) {
+const ParentCommentContent = React.memo(function ParentCommentContent({parent, setClickId}) {
   const classes = useStyles();
   const handleOnClick = () => {
     setClickId(parent.id);
@@ -61,8 +86,11 @@ export function ParentCommentContent({parent, setClickId}) {
       <a
         className={classes.link}
         href={`#${parent.id}`}
-        onClick={handleOnClick}>
-        <span style={{marginLeft: 2}}>@{parent.nickname}</span>
+        onClick={handleOnClick
+        }>
+        <span>
+          @{parent.nickname}
+        </span>
         <span>:</span>
         <span>
           <ReactMarkdown source={parent.content}/>
@@ -70,9 +98,9 @@ export function ParentCommentContent({parent, setClickId}) {
       </a>
     </blockquote>
   );
-}
+}, areEqual);
 
-export function CommentContent({content}) {
+const CommentContent = React.memo(function CommentContent({content}) {
   const classes = useStyles();
   const contentRef = useRef();
   const [overflow, setOverflow] = useState(false);
@@ -104,23 +132,25 @@ export function CommentContent({content}) {
             <Button
               onClick={handleOnClick}
               color="primary">
-              更多...
+              查看更多...
             </Button>
           </div>
         )
       }
     </>
   );
-}
+});
 
 
-export function Nickname({website, id, clickId, nickname}) {
+const Nickname = React.memo(function Nickname(props) {
+  const {website, currentId, clickId, nickname} = props;
   const classes = useStyles();
   const handleOnClick = (e) => {
     if (!website) {
       e.preventDefault();
     }
   };
+
   const style = website ? {color: '#7986cb'} : {color: '#000'};
 
   return (
@@ -130,17 +160,19 @@ export function Nickname({website, id, clickId, nickname}) {
       rel="noopener noreferrer"
       onClick={handleOnClick}
       style={style}
-      className={clickId === id ? classes.shake : null}>
+      className={clickId === currentId ? classes.shake : null}>
       {nickname}
     </a>
   );
-}
+});
 
-export function ReplayButton({handleOpenModal, id}) {
+const ReplayButton = React.memo(function ReplayButton({handleOpenModal, reply}) {
   const handleOnClick = () => {
-    handleOpenModal(id);
+    handleOpenModal(reply);
   };
   return (
     <ReplyIcon onClick={handleOnClick}/>
   );
-}
+});
+
+export default Content;

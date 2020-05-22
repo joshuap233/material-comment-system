@@ -42,4 +42,19 @@ const updateDictTreeNode = (nodes, id, data) => {
   return _updateDictTreeNode(nodes);
 };
 
-export {getCurrentTime, getBrowserVersion, updateDictTreeNode};
+const areEqual = (pre, next) => {
+  let equal = true;
+  for (let key of Object.keys(pre)) {
+    if (!equal) {
+      break;
+    }
+    if (key === 'parent') {
+      equal = pre[key] ? pre[key].id === next[key].id : true;
+    } else {
+      equal = Object.is(pre[key], next[key]);
+    }
+  }
+  return equal;
+};
+
+export {getCurrentTime, getBrowserVersion, updateDictTreeNode, areEqual};

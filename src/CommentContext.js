@@ -4,7 +4,7 @@ import {updateDictTreeNode} from "./helper";
 
 export const defaultValue = fromJS({
   dictTree: [],
-  replayId: null,
+  reply: null,
   // 编辑器拟态框
   modalOpen: false,
   editorState: {
@@ -25,21 +25,23 @@ export function reducer(state, action) {
     case 'closeModal':
       return state.merge({
         modalOpen: false,
-        replayId: null
+        reply: null
       });
     case 'openModal':
       return state.merge({
-        modalOpen: false,
-        replayId: data
+        modalOpen: true,
+        reply: data
       });
     case 'initDictTree':
-      return state.update('dicTree', () => fromJS(data));
+      return state.update('dictTree', () => fromJS(data));
     case 'updateDictTree':
       return state.update('dictTree', (value) => value.push(fromJS(data)));
     case 'recursiveUpdateDictTree':
-      return updateDictTreeNode(state.get('dictTree'), state.get('replayId'), data);
+      return state.update('dictTree', (dictTree) => updateDictTreeNode(dictTree, state.get('reply'), fromJS(data)));
     case 'updateEditorState':
-      return state.updateIn('editorState', action.field, data);
+      return state.updateIn(['editorState', action.field], () => data);
+    case 'setClickId':
+      return state.update('clickId', () => data);
     default:
       throw new Error();
   }
@@ -50,26 +52,35 @@ const action = {
   closeModal: () => ({
     type: 'closeModal',
   }),
+  openModal: (data) => ({
+    type: 'openModal',
+    data
+  }),
   updateEditorState: (field, data) => ({
     type: 'updateEditorState',
-    field,
+    data,
+    field
+  }),
+  initDictTree: (data) => ({
+    type: 'initDictTree',
+    data
+  }),
+  updateDictTree: (data) => ({
+    type: 'updateDictTree',
+    data
+  }),
+  recursiveUpdateDictTree: (data) => ({
+    type: 'recursiveUpdateDictTree',
+    data
+  }),
+  setClickId: (data) => ({
+    type: 'setClickId',
     data
   })
 };
 
-const generateActions = (names) => {
-  names.forEach(name => {
-    action[name] = (data) => ({
-      type: name,
-      data
-    });
-  });
-};
-
-generateActions(['openModal', 'initDictTree', 'updateDictTree', 'recursiveUpdateDictTree']);
-
-export {action};
 
 const CommentContext = React.createContext({});
 
+export {action};
 export default CommentContext;
