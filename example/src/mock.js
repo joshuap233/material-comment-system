@@ -8,7 +8,7 @@ export const initData = [
         website: 'http://shushugo.com',
         email: 'shushugo233@gmail.com',
         id: '1231asdf',
-        content: '试试',
+        content: 'oooops',
         time: '2019/10/2 10:20',
         avatar: '4bd4bb9c9fa6057bb546b3c12a2c3e5c',
         child: [{
@@ -17,7 +17,7 @@ export const initData = [
           website: '',
           email: '12313@qq.com',
           id: '1231123zcxv',
-          content: '试试',
+          content: 'test',
           time: '2019/10/2 10:20',
           avatar: '',
           child: []
@@ -29,7 +29,7 @@ export const initData = [
         website: '',
         email: 'adfads@qq.com',
         id: '123654',
-        content: '还行',
+        content: 'i have a pen',
         time: '2019/10/2 10:20',
         avatar: '',
         child: []
@@ -41,7 +41,7 @@ export const initData = [
     email: 'nczkx@qq.com',
     id: 'abc1212',
     time: '2019/10/2 10:20',
-    content: '第一',
+    content: 'i have an apple',
     avatar: ''
   }, {
     child: [],
@@ -52,8 +52,7 @@ export const initData = [
     id: 'abc121da2',
     time: '2019/10/2 10:20',
     avatar: '',
-    content: `
-      \`\`\`
+    content: `\`\`\`jsx
 function ParentContent({parent, setClickId}) {
   return (
     <blockquote style={{
@@ -92,8 +91,8 @@ export const newData = {
           nickname: 'nickname1asdf',
           website: 'http://shushugo.com',
           email: '123@gmail.com',
-          id: '1231a11sdf',
-          content: '试试',
+          id: '1231a11sdf123123',
+          content: 'test',
           time: '2019/10/2 10:20',
           avatar: '4bd4bb9c9fa6057bb546b3c12a2c3e5c',
           child: [{
@@ -101,8 +100,8 @@ export const newData = {
             nickname: 'nickname1',
             website: '',
             email: '12313@qq.com',
-            id: '111',
-            content: '试试',
+            id: '11112312321',
+            content: 'test',
             time: '2019/10/2 10:20',
             avatar: '',
             child: []
@@ -113,8 +112,8 @@ export const newData = {
           nickname: 'nickname12',
           website: '',
           email: 'adfads@qq.com',
-          id: '222',
-          content: '还行',
+          id: '222123123123',
+          content: 'test',
           time: '2019/10/2 10:20',
           avatar: '',
           child: []
@@ -126,7 +125,7 @@ export const newData = {
       email: 'nczkx@qq.com',
       id: 'abc1444212',
       time: '2019/10/2 10:20',
-      content: '第一',
+      content: 'test',
       avatar: ''
     },
   ]

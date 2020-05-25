@@ -5,11 +5,12 @@ import ReplyIcon from "@material-ui/icons/Reply";
 import useStyles from './treeViewItem.style';
 import Avatar from "@material-ui/core/Avatar";
 import CommentContext from "../CommentContext";
-import {areEqual} from "../helper";
+import {areEqual, cln} from "../helper";
 import PropTypes from 'prop-types';
 import Immutable from 'immutable';
 import CodeBlock from "../CodeBlock";
-import './shake.css';
+import useEditorStyle from '../editorState.style';
+
 
 const Content = React.memo(function Content({level, node, parent}) {
   const {state, dispatch, action} = useContext(CommentContext);
@@ -43,6 +44,10 @@ const ContextContent = React.memo(function ContextContent(props) {
   const {level, node, parent, setClickId, handleOpenModal, clickId, codeHighlighting, handleOnAnimationEnd} = props;
   const classes = useStyles({level, link: node.get('website')});
 
+  const shake = useMemo(() => {
+    return node.get('id') === clickId;
+  }, []);
+
   const handleOnNicknameClick = (e) => {
     if (!node.get('website')) {
       e.preventDefault();
@@ -66,7 +71,7 @@ const ContextContent = React.memo(function ContextContent(props) {
             target={'_blank'}
             rel="noopener noreferrer"
             onClick={handleOnNicknameClick}
-            className={`${classes.nickname} shake`}
+            className={cln(classes.nickname, {'shake': shake})}
             onAnimationEnd={handleOnAnimationEnd}
           >
             {node.get('nickname')}
@@ -132,6 +137,7 @@ const ParentCommentContent = React.memo(function ParentCommentContent(props) {
 const CommentContent = React.memo(function CommentContent(props) {
   const {content, codeHighlighting} = props;
   const classes = useStyles();
+  const editorStyle = useEditorStyle();
   const contentRef = useRef();
   const [overflow, setOverflow] = useState(false);
   const [hidden, setHidden] = useState(true);
@@ -152,7 +158,7 @@ const CommentContent = React.memo(function CommentContent(props) {
     <React.Fragment>
       <div
         ref={contentRef}
-        className={`${classes.scroll} ${hidden ? classes.overflow : null}`}
+        className={cln(classes.scroll, editorStyle.table, {[classes.overflow]: hidden})}
       >
         <ReactMarkdown
           source={content}

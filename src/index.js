@@ -3,6 +3,8 @@ import Editor from "./editor/Editor";
 import {Provider} from './CommentContext';
 import PropTypes from "prop-types";
 import './global.css';
+import React from "react";
+
 
 Provider.prototype = {
   codeHighlighting: PropTypes.shape({

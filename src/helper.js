@@ -60,5 +60,21 @@ const areEqual = (pre, next) => {
   }
   return equal;
 };
+// combineClassName
+const cln = (...classes) => {
+  let className = '';
+  classes.forEach(item => {
+    if (item) {
+      if (item instanceof Object) {
+        const key = Object.keys(item)[0];
+        const value = item[key];
+        className = value ? className + `${key} ` : className;
+      } else {
+        className += `${className} `;
+      }
+    }
+  });
+  return className;
+};
 
-export {getCurrentTime, getBrowserVersion, updateDictTreeNode, areEqual};
+export {cln, getCurrentTime, getBrowserVersion, updateDictTreeNode, areEqual};

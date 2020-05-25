@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useMemo} from "react";
 import {TextField, Collapse} from "@material-ui/core";
 import CommentContext from "../CommentContext";
 import useStyles from './editorItem.style';
-import {getBrowserVersion, getCurrentTime} from "../helper";
+import {getBrowserVersion, getCurrentTime, cln} from "../helper";
 import {v4 as uuidV4} from "uuid";
 import md5 from "crypto-js/md5";
 import ReactMarkdown from "react-markdown";
@@ -15,6 +15,7 @@ import SpeedDialAction from "@material-ui/lab/SpeedDialAction";
 import PublishIcon from '@material-ui/icons/Publish';
 import PropTypes from "prop-types";
 import CodeBlock from '../CodeBlock';
+import useEditorStyle from '../editorState.style';
 
 
 export const Field = React.memo(function Field({name, ...props}) {
@@ -112,11 +113,12 @@ export const SubmitButton = React.memo(function SubmitButton({cacheContent, subm
 export const Preview = React.memo(function Preview(props) {
   const {cacheContent, show, codeHighlighting} = props;
   const classes = useStyles();
+  const editorStyle = useEditorStyle();
   return (
     <Collapse in={show}>
       {
         show && (
-          <div className={classes.preview}>
+          <div className={cln(classes.preview,editorStyle.table)}>
             <ReactMarkdown
               renderers={
                 codeHighlighting ? {code: CodeBlock} : {}
