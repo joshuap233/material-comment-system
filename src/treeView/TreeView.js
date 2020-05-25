@@ -1,16 +1,19 @@
-import React, {useContext} from "react";
+import React, {useCallback, useContext, useEffect} from "react";
 import Divider from '@material-ui/core/Divider';
 import Content from './TreeViewItem';
 import CommentContext from "../CommentContext";
 import {areEqual} from "../helper";
 import {Button} from '@material-ui/core';
+import useStyles from './treeView.style';
+import Immutable from "immutable";
+import PropTypes from 'prop-types';
 
 
 const TreeNode = React.memo(function Node(props) {
   const {nodes, parent, level} = props;
   if (nodes.size !== 0) {
     return (
-      <>
+      <React.Fragment>
         {
           nodes.map(node => (
             <div key={node.get('id')}>
@@ -36,34 +39,80 @@ const TreeNode = React.memo(function Node(props) {
             </div>
           ))
         }
-      </>
+      </React.Fragment>
     );
   }
-  return <></>;
+  return <React.Fragment></React.Fragment>;
 }, areEqual);
 
-function TreeView() {
-  const {state} = useContext(CommentContext);
-  return (
-    <ContextTreeView dictTree={state.get('dictTree')}/>
-  );
-}
+export default React.memo(function TreeView(props) {
+    const {initApi, loadMoreAPi} = props;
+    const {state, dispatch, action} = useContext(CommentContext);
+    useEffect(() => {
+      initApi().then(data => {
+        dispatch(action.mergeDictTree(data));
+      });
+    }, [action, dispatch, initApi]);
 
-const ContextTreeView = React.memo(function ContextTreeView({dictTree}) {
+    const handleOnClick = useCallback(() => {
+      loadMoreAPi().then(res => {
+        dispatch(action.mergeDictTree(res.data));
+        if (res.bottom) {
+          dispatch(action.setBottom());
+        }
+      });
+    }, [loadMoreAPi]);
+    return (
+      <ContextTreeView
+        bottom={state.get('bottom')}
+        dictTree={state.get('dictTree')}
+        handleOnClick={handleOnClick}
+      />
+    );
+  }
+);
+
+const ContextTreeView = React.memo(function ContextTreeView(props) {
+  const {bottom, dictTree, handleOnClick} = props;
+  const classes = useStyles();
   const level = 0;
+
   return (
-    <div>
+    <div className={classes.treeWrapper}>
       <TreeNode
         level={level}
         nodes={dictTree}
       />
-      <div>
-        <Button variant="contained" color="primary">
-          加载更多...
-        </Button>
-      </div>
+      {
+        !bottom && (
+          <div>
+            <div className={classes.loadMoreButton}>
+              <Button
+                onClick={handleOnClick}
+                color="primary" variant={"contained"}>
+                加载更多...
+              </Button>
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 });
 
-export default React.memo(TreeView);
+TreeNode.prototype = {
+  nodes: PropTypes.instanceOf(Immutable.List).isRequired,
+  parent: PropTypes.shape({
+    id: PropTypes.string,
+    content: PropTypes.string,
+    nickname: PropTypes.string
+  }),
+  level: PropTypes.number
+};
+
+
+ContextTreeView.prototype = {
+  bottom: PropTypes.bool,
+  dictTree: PropTypes.instanceOf(Immutable.List),
+  handleOnClick: PropTypes.func
+};

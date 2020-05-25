@@ -1,18 +1,3 @@
-# material-comment-system
-
-> a comment system component based on material-ui
-
-[![NPM](https://img.shields.io/npm/v/material-comment-system.svg)](https://www.npmjs.com/package/material-comment-system) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-## Install
-
-```bash
-npm install --save material-comment-system
-```
-
-## Usage
-
-```jsx
 import React, {useCallback} from 'react';
 import {initData, newData} from "./mock";
 
@@ -52,9 +37,3 @@ const App = () => {
 };
 
 export default App;
-```
-
-
-## License
-
-MIT © [pjshu](https://github.com/pjshu)

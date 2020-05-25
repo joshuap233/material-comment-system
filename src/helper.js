@@ -50,6 +50,10 @@ const areEqual = (pre, next) => {
     }
     if (key === 'parent') {
       equal = pre[key] ? pre[key].id === next[key].id : true;
+    } else if (key === 'codeHighlighting') {
+      for (let key2 of Object.keys(pre['codeHighlighting'])) {
+        equal = pre['codeHighlighting'][key2] === next['codeHighlighting'][key2];
+      }
     } else {
       equal = Object.is(pre[key], next[key]);
     }

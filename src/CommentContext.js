@@ -1,8 +1,9 @@
-import React from "react";
+import React, {useReducer} from "react";
 import {fromJS} from "immutable";
 import {updateDictTreeNode} from "./helper";
+import {areEqual} from "./helper";
 
-export const defaultValue = fromJS({
+const defaultValue = fromJS({
   dictTree: [],
   reply: null,
   // 编辑器拟态框
@@ -15,11 +16,19 @@ export const defaultValue = fromJS({
     avatar: ''
   },
   // 被点击的父级评论id
-  clickId: null
+  clickId: null,
+  bottom: false,
+  config: {
+    codeHighlighting: {
+      preview: true,
+      quote: false,
+      content: true
+    }
+  }
 });
 
 
-export function reducer(state, action) {
+function reducer(state, action) {
   const {type, data} = action;
   switch (type) {
     case 'closeModal':
@@ -32,16 +41,16 @@ export function reducer(state, action) {
         modalOpen: true,
         reply: data
       });
-    case 'initDictTree':
-      return state.update('dictTree', () => fromJS(data));
-    case 'updateDictTree':
-      return state.update('dictTree', (value) => value.push(fromJS(data)));
+    case 'mergeDictTree':
+      return state.update('dictTree', (value) => value.merge(fromJS(data)));
     case 'recursiveUpdateDictTree':
       return state.update('dictTree', (dictTree) => updateDictTreeNode(dictTree, state.get('reply'), fromJS(data)));
     case 'updateEditorState':
       return state.updateIn(['editorState', action.field], () => data);
     case 'setClickId':
       return state.update('clickId', () => data);
+    case 'setBottom':
+      return state.update('bottom', () => true);
     default:
       throw new Error();
   }
@@ -61,12 +70,8 @@ const action = {
     data,
     field
   }),
-  initDictTree: (data) => ({
-    type: 'initDictTree',
-    data
-  }),
-  updateDictTree: (data) => ({
-    type: 'updateDictTree',
+  mergeDictTree: (data) => ({
+    type: 'mergeDictTree',
     data
   }),
   recursiveUpdateDictTree: (data) => ({
@@ -76,11 +81,31 @@ const action = {
   setClickId: (data) => ({
     type: 'setClickId',
     data
+  }),
+  setBottom: () => ({
+    type: 'setBottom',
   })
 };
 
 
+const Provider = React.memo(function Provider(props) {
+  const {children, codeHighlighting} = props;
+
+  const [state, dispatch] = useReducer(reducer, defaultValue, (init) => {
+    return codeHighlighting ?
+      init.updateIn(['config', 'codeHighlighting'], (value) => value.merge(codeHighlighting))
+      : init;
+  });
+
+  return (
+    <CommentContext.Provider value={{state, dispatch, action}}>
+      {children}
+    </CommentContext.Provider>
+  );
+}, areEqual);
+
+
 const CommentContext = React.createContext({});
 
-export {action};
+export {action, Provider};
 export default CommentContext;

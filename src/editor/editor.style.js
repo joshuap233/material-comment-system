@@ -1,6 +1,6 @@
 import {makeStyles} from "@material-ui/core/styles";
 
-export default makeStyles({
+export default makeStyles((theme) => ({
   portal: {
     minHeight: 500,
     position: 'fixed',
@@ -12,32 +12,29 @@ export default makeStyles({
   root: {
     background: '#fff',
     width: 800,
-    borderRadius: 4
+    borderRadius: 4,
+    [theme.breakpoints.only('xs')]: {
+      width: '100vw'
+    }
   },
   editorWrapper: {
     position: 'relative',
-    width: 800
+    width: '100%'
   },
   closeIcon: {
     position: 'absolute',
     top: 10,
     right: 10,
   },
-  editor: {
+  info: {
     position: 'absolute',
-    right: 80,
-    bottom: 10,
+    left: 20,
+    bottom: 15,
     zIndex: 100,
-    '& > div': {
-      display: 'flex',
-      flexDirection: 'row'
-    },
-    '& a': {
-      color: 'black'
-    }
+
   },
   fieldWrapper: {
-    width: 800,
+    width: '100%',
     boxSizing: "border-box",
     border: '1px solid #C4C4C4',
     padding: 5,
@@ -47,19 +44,15 @@ export default makeStyles({
       width: '100%',
       display: 'flex',
       padding: '18.5px 14px',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
+      [theme.breakpoints.only('xs')]: {
+        flexDirection: 'column',
+        padding: '10px 14px',
+      }
     }
   },
   multiLineTextField: {
     width: '100%',
     borderTop: 0
-  },
-  preview: {
-    width: 800,
-    border: '1px solid #C4C4C4',
-    borderRadius: 4,
-    marginTop: 10,
-    marginBottom: 10,
-    padding: 5
   }
-});
+}));

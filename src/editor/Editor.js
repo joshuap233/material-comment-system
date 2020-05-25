@@ -1,73 +1,18 @@
-import React, {useState, useCallback, useContext} from 'react';
-import ReactMarkdown from "react-markdown";
+import React, {useState, useCallback, useContext, useLayoutEffect} from 'react';
 import {Box, TextField} from '@material-ui/core';
-import PageviewIcon from '@material-ui/icons/Pageview';
-import BackupIcon from '@material-ui/icons/Backup';
-import InsertEmoticonIcon from '@material-ui/icons/InsertEmoticon';
 import InfoIcon from '@material-ui/icons/Info';
-import {getBrowserVersion, getCurrentTime} from "../helper";
-import {v4 as uuidV4} from 'uuid';
 import ReactDOM from 'react-dom';
 import CloseIcon from '@material-ui/icons/Close';
-import {Field, Emoji} from "./EditorItem";
-import md5 from 'crypto-js/md5';
+import {Field, Emoji, ToolBar, Preview} from "./EditorItem";
 import useStyles from './editor.style';
 import CommentContext from "../CommentContext";
+import PropTypes from 'prop-types';
 
-function SubmitButton({cacheContent}) {
-  const {state: contextState, dispatch, action} = useContext(CommentContext);
 
-  const parseData = useCallback(() => {
-    const browser = getBrowserVersion();
-    const {formatTime, timestamp} = getCurrentTime();
-    const editorState = contextState.get('editorState').toJS();
-    editorState.content = cacheContent;
-    let website = editorState.website;
-    if (website && !website.match('https?://')) {
-      website = 'http://' + website;
-    }
-    return [{
-      ...editorState,
-      website,
-      id: uuidV4(),
-      time: timestamp,
-      browser: browser,
-      child: [],
-      avatar: editorState.email ? md5(editorState.email).toString() : ''
-    }, formatTime];
-  }, [cacheContent, contextState]);
-
-  const handleOnSubmit = useCallback(() => {
-    let [data, formatTime] = parseData();
-    //TODO: http post
-    data.time = formatTime;
-    if (contextState.get('reply') === null) {
-      dispatch(action.updateDictTree(data));
-    } else {
-      dispatch(action.recursiveUpdateDictTree(data));
-    }
-    dispatch(action.closeModal());
-  }, [action, contextState, dispatch, parseData]);
-
-  return (
-    <div title={'提交'} onClick={handleOnSubmit}>
-      <BackupIcon/>
-    </div>
-  );
-};
-
-function Preview({cacheContent}) {
+const Editor = React.memo(function Editor(props) {
+  const {isModal, submitApi} = props;
   const classes = useStyles();
-  return (
-    <div className={classes.preview}>
-      <ReactMarkdown source={cacheContent}/>
-    </div>
-  );
-}
-
-const Editor = React.memo(function Editor({isModal}) {
-  const classes = useStyles();
-  const {dispatch, action} = useContext(CommentContext);
+  const {state:contextState,dispatch, action} = useContext(CommentContext);
   const [cacheContent, setCacheContent] = useState('(つ´ω`)つ');
   const [state, setState] = useState({
     preview: false,
@@ -110,25 +55,22 @@ const Editor = React.memo(function Editor({isModal}) {
             </div>
           )
         }
-        <div className={classes.editor}>
-          <div>
-            <div
-              title={state.preview ? '关闭预览' : '预览'}
-              onClick={handlePreviewClick}>
-              <PageviewIcon/>
-            </div>
-            <SubmitButton cacheContent={cacheContent}/>
-            <div title={'表情'} onClick={handleEmojiClick}>
-              <InsertEmoticonIcon/>
-            </div>
-            <div title={'markdown 语法'}>
-              <a
-                target={'_blank'}
-                rel="noopener noreferrer"
-                href="https://guides.github.com/features/mastering-markdown/">
-                <InfoIcon/>
-              </a>
-            </div>
+        <ToolBar
+          submitApi={submitApi}
+          preview={state.preview}
+          handlePreviewClick={handlePreviewClick}
+          handleEmojiClick={handleEmojiClick}
+          cacheContent={cacheContent}
+        />
+        <div className={classes.info}>
+          <div title={'markdown 语法'}>
+            <a
+              target={'_blank'}
+              rel="noopener noreferrer"
+              href="https://guides.github.com/features/mastering-markdown/">
+              <InfoIcon color="primary"
+              />
+            </a>
           </div>
         </div>
         <div className={classes.fieldWrapper}>
@@ -148,34 +90,64 @@ const Editor = React.memo(function Editor({isModal}) {
           />
         </div>
       </div>
-      {
-        state.preview && (
-          <Preview cacheContent={cacheContent}/>
-        )
-      }
-      {
-        state.emoji && (
-          <Emoji setCacheContent={setCacheContent}/>
-        )
-      }
+      <Preview
+        cacheContent={cacheContent}
+        show={state.preview}
+        codeHighlighting={contextState.getIn(['config','codeHighlighting','preview'])}
+      />
+      <Emoji setCacheContent={setCacheContent} show={state.emoji}/>
     </Box>
   );
 });
 
-const modalRoot = document.getElementById('modal-root');
 
-export const PortalEditor = React.memo(function PortalEditor() {
+const PortalEditor = React.memo(function PortalEditor(props) {
+  const {submitApi} = props;
   const classes = useStyles();
+  const {state} = useContext(CommentContext);
+
+  const [container] = useState(document.createElement('div'));
+
+  useLayoutEffect(() => {
+    document.body.appendChild(container);
+    return () => document.body.removeChild(container);
+  }, []);
+
   return (
-    ReactDOM.createPortal((
-        <div className={classes.portal}>
-          <Editor isModal={true}/>
-        </div>
-      ),
-      modalRoot
-    )
+    <React.Fragment>
+      {ReactDOM.createPortal((
+          <React.Fragment>
+            {
+              state.get('modalOpen') && (
+                <div className={classes.portal}>
+                  <Editor isModal={true} submitApi={submitApi}/>
+                </div>
+              )
+            }
+          </React.Fragment>
+        ),
+        container
+      )}
+    </React.Fragment>
   );
 });
 
-export default Editor;
 
+export default React.memo(function MaterialEditor(props) {
+  const {submitApi} = props;
+  return (
+    <React.Fragment>
+      <Editor submitApi={submitApi}/>
+      <PortalEditor submitApi={submitApi}/>
+    </React.Fragment>
+  );
+});
+
+PortalEditor.prototype = {
+  submitApi: PropTypes.func.isRequired,
+};
+
+Editor.prototype = {
+  isModal: PropTypes.bool.isRequired,
+  submitApi: PropTypes.func.isRequired
+};
