@@ -207,8 +207,12 @@ const initAPi = useCallback(() => new Promise(resolve => {
 
 
 ## TODO
-- emoji
 - device detect
+- admin system
+- emoji support
+- leancloud support
+- i18n
+- Count visits
 
 ## License
 
